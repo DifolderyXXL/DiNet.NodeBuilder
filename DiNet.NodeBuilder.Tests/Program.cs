@@ -14,7 +14,7 @@ using System.Runtime.CompilerServices;
 NodeCommandContext.Shared.LoadNodeCommands();
 
 
-CompilerTester.ConstantSeq(new());
+CompilerTester.Branches(new());
 
 
 ValueGroup Run(Node node, ValueGroup input)

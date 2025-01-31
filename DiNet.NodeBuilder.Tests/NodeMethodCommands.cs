@@ -20,6 +20,14 @@ class NodeMethodCommands
     [NodeMethod]
     public float GetPower(float value)
     {
+        Console.WriteLine($"Power {value * value}");
         return value * value;
+    }
+
+
+    [NodeMethod]
+    public bool IsPositive(float value)
+    {
+        return value > 0;
     }
 }

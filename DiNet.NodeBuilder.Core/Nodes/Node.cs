@@ -31,6 +31,36 @@ public class Node : INode
     }
 }
 
+public class IfElseNode : FlowNode, IBranchNode
+{
+    public IfElseNode(NodeContainer container, int id) : base(container, id)
+    {
+        InputPorts = [new(0, this, typeof(bool))];
+        Command = new(null, [typeof(bool)], []);
+    }
+
+    public IEnterNode?[]? NextNodes { get; set; } = new IEnterNode[2];
+
+    public Func<ValueGroup, int> NodeSelectorFunc => (xg) => 
+    {
+        var x = xg.Group[0].obj;
+        Console.WriteLine($"Select IF {x}");
+
+        if (x is bool b)
+            return b ? 0 : 1;
+        if (x is int i)
+            return i > 0 ? 0 : 1;
+        if (x is long l)
+            return l > 0 ? 0 : 1;
+        return -1;
+    };
+
+    public void SetSelectionFunc(Func<object, int> func)
+    {
+        
+    }
+}
+
 public static class NodeHelper
 {
     public static InputPort[] GenerateInputPorts(

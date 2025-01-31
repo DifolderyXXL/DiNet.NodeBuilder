@@ -2,6 +2,7 @@
 using DiNet.NodeBuilder.Core.Nodes.Interfaces;
 using DiNet.NodeBuilder.Core.Primitives;
 using DiNet.NodeBuilder.Core.Reflection.Helpers;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
@@ -12,29 +13,77 @@ public class NodeCompiler
 
     private List<int> _buildSequence = [];
 
+    private LabelTarget _returnLabel;
+
+    public Func<ValueGroup> BetterCompileNode(IEnterNode node)
+    {
+        _returnLabel = Expression.Label(typeof(ValueGroup));
+
+        //getting root
+        var startNode = node;
+        while (startNode.PreviousNode is not null)
+            startNode = startNode.PreviousNode;
+
+        var cache = BuildBlock(startNode);
+        
+        cache.body.Add(Expression.Label(_returnLabel, ValueGroupHelper.GetVoidValueGrouper()));
+        var block = Expression.Block(cache.variables, cache.body);
+
+        var lambda = Expression.Lambda<Func<ValueGroup>>(block, []);
+        return lambda.Compile();
+    }
+
+    public Func<ValueGroup> BetterCompileNode(INode node)
+    {
+        _returnLabel = Expression.Label(typeof(ValueGroup));
+
+        var cache = Cache(node);
+
+
+        var block = Expression.Block(cache.Item2.variables, cache.Item2.body);
+
+        var lambda = Expression.Lambda<Func<ValueGroup>>(block, []);
+        return lambda.Compile();
+    }
 
     public BlockCache BuildBlock(INode root)
     {
-        if (root is IFlowNode flowNode)
-            return BuildBlock(flowNode);
-        else if (root is IBranchNode branchNode)
+        if (root is IBranchNode branchNode)
             return BuildBlock(branchNode);
+        else if(root is IFlowNode flowNode)
+            return BuildBlock(flowNode);
+        else if (root is IReturnNode returnNode)
+            return BuildBlock(returnNode);
+
         else return new([], []);
+    }
+
+    public BlockCache BuildBlock(IReturnNode root)
+    {
+        var cur = Cache(root);
+
+
+        var input = GetNodeInput(root);
+
+        cur.Item2.variables.AddRange(input.Item2.variables);
+        cur.Item2.body.AddRange(input.Item2.body);
+
+        cur.Item2.body.Add(Expression.Return(_returnLabel, input.Item1));
+
+        return cur.Item2;
     }
 
     public BlockCache BuildBlock(IFlowNode root)
     {
-        var cache = CallForCacheNode(root);
-
-        var cur = new BlockCache([], [cache.assignation]);
+        var cur = Cache(root);
         if (root.NextNode is not null)
         {
             var block = BuildBlock(root.NextNode);
-            cur.variables.AddRange(block.variables);
-            cur.body.AddRange(block.body);
+            cur.Item2.variables.AddRange(block.variables);
+            cur.Item2.body.AddRange(block.body);
         }
        
-        return cur;
+        return cur.Item2;
     }
 
     public BlockCache BuildBlock(IBranchNode root)
@@ -44,87 +93,57 @@ public class NodeCompiler
         if (root.NextNodes is null)
             throw new NullReferenceException();
 
-        var selectedBranch = Expression.Invoke(Expression.Constant(root.NodeSelectorFunc), input);
+        var selectedBranch = Expression.Invoke(Expression.Constant(root.NodeSelectorFunc), input.Item1);
 
-        var cases = new List<SwitchCase>();
+        var selectedBranchVar = Expression.Variable(typeof(int), "SelectedBranch");
+        
+
+        var cases = new List<Expression>();
+        cases.Add(Expression.Assign(selectedBranchVar, selectedBranch));
+
+
         for (int i = 0; i < root.NextNodes.Length; i++)
         {
             if (root.NextNodes[i] is not null)
             {
                 var block = BuildBlock(root.NextNodes[i]!);
                 cases.Add(
-                    Expression.SwitchCase(
-                        Expression.Block(block.variables, block.body),
-                        Expression.Constant(i)));
+                    Expression.IfThen(
+                        Expression.Equal(Expression.Constant(i), selectedBranchVar),
+                        Expression.Block(block.variables, block.body)));
             }
         }
 
         if (cases.Count == 0)
-            return new([], [Expression.Empty()]);
+            input.Item2.body.Add(Expression.Block([], []));
         else
-            return new([], [Expression.Switch(selectedBranch, cases.ToArray())]);
+            input.Item2.body.Add(Expression.Block([selectedBranchVar], cases));
+
+        return input.Item2;
     }
 
-
-    public Func<ValueGroup> CompileNode(IFlowNode node)
-    {
-        //getting root
-        var startNode = node;
-        while (startNode.PreviousNode is not null)
-            startNode = startNode.PreviousNode;
-
-        //compiling
-        CallForCacheNode(startNode);
-        var lastNode = startNode;
-        while(lastNode.NextNode is not null)
-        {
-            var next = lastNode.NextNode;
-
-            if (next is IFlowNode flowNode)
-                lastNode = flowNode;
-            else if(next is IBranchNode branchNode)
-
-
-            CallForCacheNode(lastNode);
-        }
-        
-        var seq = _buildSequence.Select(x => _nodeCache[x]);
-        var block = Expression.Block(seq.Select(x => x.resultVariable), seq.Select(x => x.assignation));
-
-        var lambda = Expression.Lambda<Func<ValueGroup>>(block, []);
-        return lambda.Compile();
-    }
-
-    public Func<ValueGroup> CompileNode(INode node)
-    {
-        CallForCacheNode(node);
-        var seq = _buildSequence.Select(x => _nodeCache[x]);
-        var block = Expression.Block(seq.Select(x => x.resultVariable), seq.Select(x => x.assignation));
-
-        var lambda = Expression.Lambda<Func<ValueGroup>>(block, []);
-        return lambda.Compile();
-    }
-
-    public CachedNodeCompile CallForCacheNode(INode node)
+    public (CachedNodeCompile, BlockCache) Cache(INode node)
     {
         if (!_nodeCache.ContainsKey(node.Id))
         {
-            GenerateExpression(node);
+            var cache = GenerateExpression(node);
 
             //before all is generated
-
-            _buildSequence.Add(node.Id);
+            return (_nodeCache[node.Id], cache);
         }
 
-        return _nodeCache[node.Id];
+        return (_nodeCache[node.Id], new([], []));
     }
 
-    public Expression GetNodeInput(INode node)
+    public (Expression, BlockCache) GetNodeInput(INode node)
     {
         if (node.Command is null)
             throw new NullReferenceException($"node.Command is null");
         if (node.InputPorts is null)
             throw new NullReferenceException($"node.InputPorts is null");
+
+
+        var blockCache = new BlockCache([], []);
 
         var nodeInputs = new Expression[node.Command.InputTypes.Length];
         foreach (var input in node.InputPorts)
@@ -136,7 +155,11 @@ public class NodeCompiler
             }
 
             var connectedNode = input.ConnectedPort.Parent;
-            var resVar = CallForCacheNode(connectedNode).resultVariable;
+            var cache = Cache(connectedNode);
+            var resVar = cache.Item1.resultVariable;
+
+            blockCache.variables.AddRange(cache.Item2.variables);
+            blockCache.body.AddRange(cache.Item2.body);
 
             var outputIndex = input.ConnectedPort.Id;
 
@@ -147,21 +170,28 @@ public class NodeCompiler
                 );
         }
 
-        return ValueGroupHelper.GetValueGrouper(nodeInputs, node.Command.InputTypes);
+        return (ValueGroupHelper.GetValueGrouper(nodeInputs, node.Command.InputTypes), blockCache);
     }
 
-    public void GenerateExpression(INode node)
+    public BlockCache GenerateExpression(INode node)
     {
         var returnVar = Expression.Variable(typeof(ValueGroup), $"var{node.Id}");
         var nodeCommand = node.Command;
 
+        var inp = GetNodeInput(node);
+
+
         var assignExpr = Expression.Assign(
             returnVar, 
             Expression.Invoke(
-                Expression.Constant(nodeCommand.Func), 
-                GetNodeInput(node)));
+                Expression.Constant(nodeCommand.Func),
+                inp.Item1));
+
+        inp.Item2.variables.Add(returnVar);
+        inp.Item2.body.Add(assignExpr);
 
         _nodeCache.Add(node.Id, new(returnVar, assignExpr));
+        return inp.Item2;
     }
 }
 

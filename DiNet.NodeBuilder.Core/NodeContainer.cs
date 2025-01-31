@@ -1,4 +1,5 @@
 ﻿using DiNet.NodeBuilder.Core.Nodes;
+using DiNet.NodeBuilder.Core.Nodes.Interfaces;
 using DiNet.NodeBuilder.Core.Primitives;
 
 namespace DiNet.NodeBuilder.Core;
@@ -48,6 +49,19 @@ public class NodeContainer
         return node;
     }
 
+    public IfElseNode CreateIfElseNode()
+    {
+        var node = CreateEmptyNode<IfElseNode>();
+        return node;
+    }
+
+    public ReturnNode CreateReturnNode(params Type[]? types)
+    {
+        var node = CreateEmptyNode<ReturnNode>();
+        node.SetReturnTypes(types ?? []);
+        return node;
+    }
+
     public void RemoveNode(Node node)
     {
         UnlinkOutput(node);
@@ -73,7 +87,17 @@ public class NodeContainer
 
     }
 
-    public bool LinkNode(FlowNode from, FlowNode to)
+    public bool LinkNode(IBranchNode from, int index, IEnterNode to)
+    {
+        if (from.NextNodes[index] is not null) return false;
+        if (to.PreviousNode is not null) return false;
+
+        from.NextNodes[index] = to;
+        to.PreviousNode = from;
+        return true;
+    }
+
+    public bool LinkNode(FlowNode from, IEnterNode to)
     {
         if (from.NextNode is not null) return false;
         if (to.PreviousNode is not null) return false;
@@ -83,7 +107,7 @@ public class NodeContainer
         return true;
     }
 
-    public bool UnlinkNode(FlowNode from, FlowNode to)
+    public bool UnlinkNode(FlowNode from, IEnterNode to)
     {
         if (from.NextNode is null) return false;
         if (to.PreviousNode is null) return false;

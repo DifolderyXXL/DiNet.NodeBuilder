@@ -23,7 +23,7 @@ public static class CompilerTester
         return node;
     }
 
-    public static FlowNode CreateConstantModifiedToNode(NodeContainer container)
+    public static IEnterNode CreateConstantModifiedToNode(NodeContainer container)
     {
         var openVectorCommand = NodeCommandContext.Shared.GetFuncDataByName("OpenVector");
         var packVectorCommand = NodeCommandContext.Shared.GetFuncDataByName("PackVector");
@@ -48,7 +48,7 @@ public static class CompilerTester
         return packNode;
     }
 
-    public static FlowNode CreateNodeToNode(NodeContainer container)
+    public static IEnterNode CreateNodeToNode(NodeContainer container)
     {
         var openVectorCommand = NodeCommandContext.Shared.GetFuncDataByName("OpenVector");
         var packVectorCommand = NodeCommandContext.Shared.GetFuncDataByName("PackVector");
@@ -81,7 +81,7 @@ public static class CompilerTester
         return packNode;
     }
 
-    public static FlowNode CreateNodeToNodeSharedConstant(NodeContainer container)
+    public static IEnterNode CreateNodeToNodeSharedConstant(NodeContainer container)
     {
         var openVectorCommand = NodeCommandContext.Shared.GetFuncDataByName("OpenVector");
         var packVectorCommand = NodeCommandContext.Shared.GetFuncDataByName("PackVector");
@@ -116,6 +116,52 @@ public static class CompilerTester
     }
 
 
+    public static IEnterNode CreateBranches(NodeContainer container)
+    {
+        var openVectorCommand = NodeCommandContext.Shared.GetFuncDataByName("OpenVector");
+        var packVectorCommand = NodeCommandContext.Shared.GetFuncDataByName("PackVector");
+        var getPowerCommand = NodeCommandContext.Shared.GetFuncDataByName("GetPower");
+        var isPositiveCommand = NodeCommandContext.Shared.GetFuncDataByName("IsPositive");
+
+
+        var constNode = container.CreateConstantNode(new Vector2(-1, 2));
+        var openVec = container.CreateModifierNode(openVectorCommand);
+
+        container.Link(constNode.OutputPorts[0], openVec.InputPorts[0]);
+
+        var posCheckMod = container.CreateModifierNode(isPositiveCommand);
+
+        container.Link(openVec.OutputPorts[0], posCheckMod.InputPorts[0]);
+
+        var ifNode = container.CreateIfElseNode();
+
+        container.Link(posCheckMod.OutputPorts[0], ifNode.InputPorts[0]);
+
+        var powerTrue = container.CreateFlowNode(getPowerCommand);
+        var powerFalse = container.CreateFlowNode(getPowerCommand);
+
+        container.LinkNode(ifNode, 0, powerTrue);
+        container.LinkNode(ifNode, 1, powerFalse);
+
+        container.Link(openVec.OutputPorts[1], powerFalse.InputPorts[0]);
+
+        var returnP1 = container.CreateReturnNode(typeof(float));
+        var returnP2 = container.CreateReturnNode(typeof(float));
+        var return0 = container.CreateReturnNode(typeof(float));
+
+        container.Link(powerTrue.OutputPorts[0], returnP1.InputPorts[0]);
+        container.Link(powerFalse.OutputPorts[0], returnP2.InputPorts[0]);
+
+        container.LinkNode(powerTrue, returnP1);
+        container.LinkNode(powerFalse, returnP2);
+
+        container.LinkNode(ifNode, return0);
+
+
+        return ifNode;
+    }
+
+
     public static INode CreateConstSeq(NodeContainer container)
     {
         var powerCommand = NodeCommandContext.Shared.GetFuncDataByName("GetPower");
@@ -133,7 +179,7 @@ public static class CompilerTester
         var node = CreateConstSeq(container);
 
         var compiler = new NodeCompiler();
-        var lambda = compiler.CompileNode(node);
+        var lambda = compiler.BetterCompileNode(node);
 
         var output = lambda.Invoke();
 
@@ -146,7 +192,7 @@ public static class CompilerTester
         var node = CreateConstToNode(container);
 
         var compiler = new NodeCompiler();
-        var lambda = compiler.CompileNode(node);
+        var lambda = compiler.BetterCompileNode(node);
 
         var output = lambda.Invoke();
 
@@ -158,7 +204,7 @@ public static class CompilerTester
         var node = CreateConstantModifiedToNode(container);
 
         var compiler = new NodeCompiler();
-        var lambda = compiler.CompileNode(node);
+        var lambda = compiler.BetterCompileNode(node);
 
         var output = lambda.Invoke();
 
@@ -170,12 +216,22 @@ public static class CompilerTester
         var node = CreateNodeToNode(container);
 
         var compiler = new NodeCompiler();
-        var lambda = compiler.CompileNode(node);
+        var lambda = compiler.BetterCompileNode(node);
 
         var output = lambda.Invoke();
 
         Console.WriteLine(output.Group[0].obj);
     }
 
+    public static void Branches(NodeContainer container)
+    {
+        var node = CreateBranches(container);
 
+        var compiler = new NodeCompiler();
+        var lambda = compiler.BetterCompileNode(node);
+
+        var output = lambda.Invoke();
+
+        //Console.WriteLine(output.Group[0].obj);
+    }
 }
