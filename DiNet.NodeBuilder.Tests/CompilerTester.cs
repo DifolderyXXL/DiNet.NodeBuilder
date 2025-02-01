@@ -145,15 +145,15 @@ public static class CompilerTester
 
         container.Link(openVec.OutputPorts[1], powerFalse.InputPorts[0]);
 
-        var returnP1 = container.CreateReturnNode(typeof(float));
-        var returnP2 = container.CreateReturnNode(typeof(float));
+        //var returnP1 = container.CreateReturnNode(typeof(float));
+        //var returnP2 = container.CreateReturnNode(typeof(float));
         var return0 = container.CreateReturnNode(typeof(float));
 
-        container.Link(powerTrue.OutputPorts[0], returnP1.InputPorts[0]);
-        container.Link(powerFalse.OutputPorts[0], returnP2.InputPorts[0]);
+        //container.Link(powerTrue.OutputPorts[0], returnP1.InputPorts[0]);
+        //container.Link(powerFalse.OutputPorts[0], returnP2.InputPorts[0]);
 
-        container.LinkNode(powerTrue, returnP1);
-        container.LinkNode(powerFalse, returnP2);
+        //container.LinkNode(powerTrue, returnP1);
+        //container.LinkNode(powerFalse, returnP2);
 
         container.LinkNode(ifNode, return0);
 
@@ -232,6 +232,6 @@ public static class CompilerTester
 
         var output = lambda.Invoke();
 
-        //Console.WriteLine(output.Group[0].obj);
+        Console.WriteLine(output.Group[0].obj);
     }
 }

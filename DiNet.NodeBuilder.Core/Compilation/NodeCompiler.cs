@@ -1,9 +1,7 @@
-﻿using DiNet.NodeBuilder.Core.Nodes;
-using DiNet.NodeBuilder.Core.Nodes.Interfaces;
+﻿using DiNet.NodeBuilder.Core.Nodes.Interfaces;
 using DiNet.NodeBuilder.Core.Primitives;
 using DiNet.NodeBuilder.Core.Reflection.Helpers;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Linq.Expressions;
 
 namespace DiNet.NodeBuilder.Core.Compilation;
@@ -11,21 +9,17 @@ public class NodeCompiler
 {
     private Dictionary<int, CachedNodeCompile> _nodeCache = [];
 
-    private List<int> _buildSequence = [];
-
-    private LabelTarget _returnLabel;
+    private readonly LabelTarget _returnLabel = Expression.Label(typeof(ValueGroup));
 
     public Func<ValueGroup> BetterCompileNode(IEnterNode node)
     {
-        _returnLabel = Expression.Label(typeof(ValueGroup));
-
         //getting root
         var startNode = node;
         while (startNode.PreviousNode is not null)
             startNode = startNode.PreviousNode;
 
         var cache = BuildBlock(startNode);
-        
+
         cache.body.Add(Expression.Label(_returnLabel, ValueGroupHelper.GetVoidValueGrouper()));
         var block = Expression.Block(cache.variables, cache.body);
 
@@ -35,10 +29,7 @@ public class NodeCompiler
 
     public Func<ValueGroup> BetterCompileNode(INode node)
     {
-        _returnLabel = Expression.Label(typeof(ValueGroup));
-
         var cache = Cache(node);
-
 
         var block = Expression.Block(cache.Item2.variables, cache.Item2.body);
 
@@ -50,7 +41,7 @@ public class NodeCompiler
     {
         if (root is IBranchNode branchNode)
             return BuildBlock(branchNode);
-        else if(root is IFlowNode flowNode)
+        else if (root is IFlowNode flowNode)
             return BuildBlock(flowNode);
         else if (root is IReturnNode returnNode)
             return BuildBlock(returnNode);
@@ -61,7 +52,6 @@ public class NodeCompiler
     public BlockCache BuildBlock(IReturnNode root)
     {
         var cur = Cache(root);
-
 
         var input = GetNodeInput(root);
 
@@ -82,7 +72,7 @@ public class NodeCompiler
             cur.Item2.variables.AddRange(block.variables);
             cur.Item2.body.AddRange(block.body);
         }
-       
+
         return cur.Item2;
     }
 
@@ -96,7 +86,7 @@ public class NodeCompiler
         var selectedBranch = Expression.Invoke(Expression.Constant(root.NodeSelectorFunc), input.Item1);
 
         var selectedBranchVar = Expression.Variable(typeof(int), "SelectedBranch");
-        
+
 
         var cases = new List<Expression>();
         cases.Add(Expression.Assign(selectedBranchVar, selectedBranch));
@@ -114,12 +104,18 @@ public class NodeCompiler
             }
         }
 
-        if (cases.Count == 0)
-            input.Item2.body.Add(Expression.Block([], []));
-        else
+        var flowBlock = BuildBlock(root as IFlowNode);
+
+        if (cases.Count != 0)
+        {
             input.Item2.body.Add(Expression.Block([selectedBranchVar], cases));
 
-        return input.Item2;
+            input.Item2.body.AddRange(flowBlock.body);
+            input.Item2.variables.AddRange(flowBlock.variables);
+            return input.Item2;
+        }
+
+        return flowBlock;
     }
 
     public (CachedNodeCompile, BlockCache) Cache(INode node)
@@ -148,7 +144,7 @@ public class NodeCompiler
         var nodeInputs = new Expression[node.Command.InputTypes.Length];
         foreach (var input in node.InputPorts)
         {
-            if(input.ConnectedPort is null)
+            if (input.ConnectedPort is null)
             {
                 nodeInputs[input.Id] = Expression.Default(input.ValueType);
                 continue;
@@ -178,24 +174,31 @@ public class NodeCompiler
         var returnVar = Expression.Variable(typeof(ValueGroup), $"var{node.Id}");
         var nodeCommand = node.Command;
 
+
         var inp = GetNodeInput(node);
 
+        if (nodeCommand?.Func is not null)
+        {
+            var assignExpr = Expression.Assign(
+                returnVar,
+                Expression.Invoke(
+                    Expression.Constant(nodeCommand.Func),
+                    inp.Item1));
 
-        var assignExpr = Expression.Assign(
-            returnVar, 
-            Expression.Invoke(
-                Expression.Constant(nodeCommand.Func),
-                inp.Item1));
+            inp.Item2.body.Add(assignExpr);
+        }
+        else
+            Debug.WriteLine($"Null func in {node}");
 
         inp.Item2.variables.Add(returnVar);
-        inp.Item2.body.Add(assignExpr);
 
-        _nodeCache.Add(node.Id, new(returnVar, assignExpr));
+
+        _nodeCache.Add(node.Id, new(returnVar));
         return inp.Item2;
     }
 }
 
-public record CachedNodeCompile(ParameterExpression resultVariable, Expression assignation);
+public record CachedNodeCompile(ParameterExpression resultVariable);
 
 
 public record BlockCache(List<ParameterExpression> variables, List<Expression> body);
