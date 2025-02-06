@@ -59,12 +59,12 @@ public static class CompilerTester
         var constant = container.CreateConstantNode(new Vector2(12, 13));
         var unpackModifier = container.CreateModifierNode(openVectorCommand);
 
-        var powerX = container.CreateModifierNode(getPowerCommand);
+        //var powerX = container.CreateModifierNode(getPowerCommand);
         var powerY = container.CreateModifierNode(getPowerCommand);
 
         if (!container.Link(constant.OutputPorts[0], unpackModifier.InputPorts[0])) throw new Exception();
 
-        if (!container.Link(unpackModifier.OutputPorts[0], powerX.InputPorts[0])) throw new Exception();
+        //if (!container.Link(unpackModifier.OutputPorts[0], powerX.InputPorts[0])) throw new Exception();
         if (!container.Link(unpackModifier.OutputPorts[1], powerY.InputPorts[0])) throw new Exception();
 
         //if (!container.Link(powerX.OutputPorts[0], packNode.InputPorts[0])) throw new Exception();
@@ -77,6 +77,12 @@ public static class CompilerTester
 
 
         if (!container.LinkNode(constNode, packNode)) throw new Exception();
+
+
+        var returnNode = container.CreateReturnNode(typeof(Vector2));
+
+        if (!container.Link(packNode.OutputPorts[0], returnNode.InputPorts[0])) throw new Exception();
+        if (!container.LinkNode(packNode, returnNode)) throw new Exception();
 
         return packNode;
     }
@@ -124,7 +130,7 @@ public static class CompilerTester
         var isPositiveCommand = NodeCommandContext.Shared.GetFuncDataByName("IsPositive");
 
 
-        var constNode = container.CreateConstantNode(new Vector2(-1, 2));
+        var constNode = container.CreateConstantNode(new Vector2(1, 2));
         var openVec = container.CreateModifierNode(openVectorCommand);
 
         container.Link(constNode.OutputPorts[0], openVec.InputPorts[0]);
@@ -145,15 +151,15 @@ public static class CompilerTester
 
         container.Link(openVec.OutputPorts[1], powerFalse.InputPorts[0]);
 
-        //var returnP1 = container.CreateReturnNode(typeof(float));
-        //var returnP2 = container.CreateReturnNode(typeof(float));
+        var returnP1 = container.CreateReturnNode(typeof(float));
+        var returnP2 = container.CreateReturnNode(typeof(float));
         var return0 = container.CreateReturnNode(typeof(float));
 
-        //container.Link(powerTrue.OutputPorts[0], returnP1.InputPorts[0]);
-        //container.Link(powerFalse.OutputPorts[0], returnP2.InputPorts[0]);
+        container.Link(powerTrue.OutputPorts[0], returnP1.InputPorts[0]);
+        container.Link(powerFalse.OutputPorts[0], returnP2.InputPorts[0]);
 
-        //container.LinkNode(powerTrue, returnP1);
-        //container.LinkNode(powerFalse, returnP2);
+        container.LinkNode(powerTrue, returnP1);
+        container.LinkNode(powerFalse, returnP2);
 
         container.LinkNode(ifNode, return0);
 
@@ -189,10 +195,12 @@ public static class CompilerTester
 
     public static void ConstantToNode(NodeContainer container)
     {
-        var node = CreateConstToNode(container);
+        var node = CreateConstToNode(container) as IFlowNode;
 
-        var compiler = new NodeCompiler();
-        var lambda = compiler.BetterCompileNode(node);
+
+
+        var compiler = new NextGenCompilation();
+        var lambda = compiler.Build(container, node);
 
         var output = lambda.Invoke();
 
@@ -203,8 +211,8 @@ public static class CompilerTester
     {
         var node = CreateConstantModifiedToNode(container);
 
-        var compiler = new NodeCompiler();
-        var lambda = compiler.BetterCompileNode(node);
+        var compiler = new NextGenCompilation();
+        var lambda = compiler.Build(container, node);
 
         var output = lambda.Invoke();
 
@@ -215,8 +223,11 @@ public static class CompilerTester
     {
         var node = CreateNodeToNode(container);
 
-        var compiler = new NodeCompiler();
-        var lambda = compiler.BetterCompileNode(node);
+        while (node.PreviousNode != null)
+            node = node.PreviousNode;
+
+        var compiler = new NextGenCompilation();
+        var lambda = compiler.Build(container, node);
 
         var output = lambda.Invoke();
 
@@ -227,8 +238,8 @@ public static class CompilerTester
     {
         var node = CreateBranches(container);
 
-        var compiler = new NodeCompiler();
-        var lambda = compiler.BetterCompileNode(node);
+        var compiler = new NextGenCompilation();
+        var lambda = compiler.Build(container, node);
 
         var output = lambda.Invoke();
 

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiNet.NodeBuilder.Core", "D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiNet.NodeBuilder.Tests", "DiNet.NodeBuilder.Tests\DiNet.NodeBuilder.Tests.csproj", "{160018C9-1254-4EE4-BE95-6625E8B76DC0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiNet.NodeBuilder.WPF", "DiNet.NodeBuilder.WPF\DiNet.NodeBuilder.WPF.csproj", "{01EF4556-B0B9-4F9C-AF3B-BC69F18923D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{160018C9-1254-4EE4-BE95-6625E8B76DC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{160018C9-1254-4EE4-BE95-6625E8B76DC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{160018C9-1254-4EE4-BE95-6625E8B76DC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01EF4556-B0B9-4F9C-AF3B-BC69F18923D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01EF4556-B0B9-4F9C-AF3B-BC69F18923D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01EF4556-B0B9-4F9C-AF3B-BC69F18923D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01EF4556-B0B9-4F9C-AF3B-BC69F18923D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

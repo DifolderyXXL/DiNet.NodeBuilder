@@ -1,6 +1,6 @@
 ﻿namespace DiNet.NodeBuilder.Core.Nodes.Interfaces;
 
-public interface IConstantProviderNode : INode
+public interface IConstantProviderNode : IModifierNode
 {
     public object? Value { get; }
     public Type? Type { get; }

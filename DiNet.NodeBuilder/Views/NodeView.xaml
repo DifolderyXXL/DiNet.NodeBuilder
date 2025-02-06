@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DiNet.NodeBuilder.Views.NodeView"
+             xmlns:v="clr-namespace:DiNet.NodeBuilder.Views"
+             xmlns:vm="clr-namespace:DiNet.NodeBuilder.ViewModels"
+             x:DataType="vm:NodeViewModel"
+             
+             TranslationX="{Binding PositionX}"
+             TranslationY="{Binding PositionY}"
+             
+             >
+    
+    <Border>
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="20" />
+        </Border.StrokeShape>
+
+        <Grid BackgroundColor="Gray">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" BackgroundColor="Olive">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="40"/>
+                </Grid.ColumnDefinitions>
+                <Grid.GestureRecognizers>
+                    <PointerGestureRecognizer PointerPressed="PointerGestureRecognizer_PointerPressed"/>
+                </Grid.GestureRecognizers>
+                
+                <Label Grid.Column="1" Text="Title" TextColor="WhiteSmoke" FontSize="30" HorizontalTextAlignment="Center"/>
+
+                <v:PortView Grid.Column="0" Padding="10" HorizontalOptions="Start"/>
+                <v:PortView Grid.Column="2" Padding="10" HorizontalOptions="End"/>
+            </Grid>
+
+            <Grid Grid.Row="1" Padding="2,10,2,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Column="1" BackgroundColor="DarkGray" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+
+                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                    <HorizontalStackLayout Spacing="2">
+                        <v:PortView HeightRequest="20" WidthRequest="20"/>
+                        <Label Text="In1"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Column="2" Spacing="2">
+                    <HorizontalStackLayout Spacing="2">
+                        <Label Text="Out1"/>
+                        <v:PortView HeightRequest="20" WidthRequest="20"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Grid>
+        </Grid>
+    </Border>
+    
+</ContentView>

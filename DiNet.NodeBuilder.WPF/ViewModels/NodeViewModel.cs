@@ -1,13 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 
-namespace DiNet.NodeBuilder.ViewModels;
+namespace DiNet.NodeBuilder.WPF.ViewModels;
 public partial class NodeViewModel : ObservableObject
 {
     public int Id { get; }
 
-    public event Action<object?, PointerEventArgs, int>? OnNodePressed;
+    public event Action<object?, MouseButtonEventArgs, int>? OnNodePressed;
 
     [ObservableProperty] public partial float PositionX { get; set; }
     [ObservableProperty] public partial float PositionY { get; set; }
@@ -20,7 +21,7 @@ public partial class NodeViewModel : ObservableObject
         Id = associatedId;
     }
 
-    public void OnPressed(object? sender, PointerEventArgs pointerEventArgs)
+    public void OnPressed(object? sender, MouseButtonEventArgs pointerEventArgs)
     {
         OnNodePressed?.Invoke(sender, pointerEventArgs, Id);
     }

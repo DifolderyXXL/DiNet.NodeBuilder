@@ -1,0 +1,15 @@
+﻿<UserControl x:Class="DiNet.NodeBuilder.WPF.Views.PortView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DiNet.NodeBuilder.WPF.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="400"
+             xmlns:vm="clr-namespace:DiNet.NodeBuilder.WPF.ViewModels"
+             d:DataContext="{d:DesignInstance vm:PortViewModel}"
+             >
+    <Ellipse x:Name="Port" Stroke="DarkOliveGreen" Fill="OliveDrab" StrokeThickness="3"
+             MouseDown="Port_MouseDown" MouseUp="Port_MouseUp">
+    </Ellipse>
+</UserControl>

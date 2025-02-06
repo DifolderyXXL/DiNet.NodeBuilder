@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DiNet.NodeBuilder.Views.NodeWorldView"
+             xmlns:vm="clr-namespace:DiNet.NodeBuilder.ViewModels"
+             xmlns:v="clr-namespace:DiNet.NodeBuilder.Views"
+             >
+    <VerticalStackLayout BackgroundColor="DimGray">
+        <Grid x:Name="WorldGrid" Scale="1" HorizontalOptions="Start" VerticalOptions="Start">
+            <v:NodeView HorizontalOptions="Start" WidthRequest="200"/>
+        </Grid>
+    </VerticalStackLayout>
+</ContentView>
