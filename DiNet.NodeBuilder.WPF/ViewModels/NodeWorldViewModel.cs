@@ -1,29 +1,33 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Windows.Input;
 
 namespace DiNet.NodeBuilder.WPF.ViewModels;
 public partial class NodeWorldViewModel : ObservableObject
 {
-    public ObservableCollection<NodeViewModel> Nodes { get; } = [];
+    [ObservableProperty] public partial NodeCanvasViewModel CanvasViewModel { get; set; }
+    public ObservableCollection<NodeViewModel> Nodes { get; } = [new(0), new(1)];
+
+    public NodeViewModel? DraggingNode { get; private set; }
+
+    public NodeWorldViewModel()
+    {
+        Nodes = [new(0), new(1)];
+    }
 
     public void AddNode(NodeViewModel node)
     {
         Nodes.Add(node);
-
-        node.OnNodePressed += OnNodePressed;
     }
 
     public void RemoveNode(NodeViewModel node)
     {
         Nodes.Remove(node);
-
-        node.OnNodePressed -= OnNodePressed;
     }
 
-    private void OnNodePressed(object? sender, MouseButtonEventArgs args, int id)
+    [RelayCommand]
+    private void OnNodeDragStarted(NodeViewModel vm)
     {
-        
+        DraggingNode = vm;
     }
 }
-

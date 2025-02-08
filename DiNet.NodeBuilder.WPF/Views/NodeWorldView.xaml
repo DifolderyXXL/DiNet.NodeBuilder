@@ -11,8 +11,22 @@
              d:DataContext="{d:DesignInstance vm:NodeWorldViewModel}"
              >
     <Grid MouseDown="WorldGrid_MouseDown" PreviewMouseMove="Grid_PreviewMouseMove" Background="Azure" MouseUp="Grid_MouseUp" PreviewMouseWheel="Grid_PreviewMouseWheel">
-        <Grid x:Name="WorldGrid">
-            <v:NodeView Width="200" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-        </Grid>
+
+        <ItemsControl x:Name="WorldGrid" ItemsSource="{Binding Nodes}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <v:NodeView DataContext="{Binding}" Width="200" VerticalAlignment="Top" HorizontalAlignment="Left" OnHeaderPressed="NodeView_OnHeaderPressed">
+                        <v:NodeView.RenderTransform>
+                            <TranslateTransform X="{Binding PositionX}" Y="{Binding PositionY}"/>
+                        </v:NodeView.RenderTransform>
+                    </v:NodeView>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        
     </Grid>
 </UserControl>
+
+<!--
+<v:NodeView Width="200" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+-->

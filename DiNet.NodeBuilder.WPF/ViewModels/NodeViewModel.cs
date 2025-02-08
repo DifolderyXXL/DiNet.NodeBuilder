@@ -8,8 +8,6 @@ public partial class NodeViewModel : ObservableObject
 {
     public int Id { get; }
 
-    public event Action<object?, MouseButtonEventArgs, int>? OnNodePressed;
-
     [ObservableProperty] public partial float PositionX { get; set; }
     [ObservableProperty] public partial float PositionY { get; set; }
 
@@ -19,10 +17,8 @@ public partial class NodeViewModel : ObservableObject
     public NodeViewModel(int associatedId)
     {
         Id = associatedId;
-    }
 
-    public void OnPressed(object? sender, MouseButtonEventArgs pointerEventArgs)
-    {
-        OnNodePressed?.Invoke(sender, pointerEventArgs, Id);
+        PositionX = Random.Shared.NextSingle() * 600;
+        PositionY = Random.Shared.NextSingle() * 600;
     }
 }
