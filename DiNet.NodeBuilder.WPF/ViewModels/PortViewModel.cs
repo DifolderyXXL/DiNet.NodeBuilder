@@ -7,12 +7,10 @@ using System.Windows.Input;
 namespace DiNet.NodeBuilder.WPF.ViewModels;
 public partial class PortViewModel : ObservableObject
 {
-    public event Action<object?, MouseButtonEventArgs, int>? OnPortPressed;
-    public event Action<object?, MouseButtonEventArgs, int>? OnPortReleased;
-
     public int Id { get; init; }
 
     [ObservableProperty] public partial PortMetadata? PortMetadata { get; set; }
+
 
     public PortViewModel(int portId, PortMetadata? inputMetadata)
     {
@@ -20,17 +18,16 @@ public partial class PortViewModel : ObservableObject
 
         Id = portId;
     }
+}
 
-    public void OnPressed(object? sender, MouseButtonEventArgs pointerEventArgs)
+public partial class BranchViewModel : ObservableObject
+{
+    public int Id { get; init; }
+
+    [ObservableProperty] public partial PortMetadata? PortMetadata { get; set; }
+
+    public BranchViewModel(int portId)
     {
-        OnPortPressed?.Invoke(sender, pointerEventArgs, Id);
-
-        Debug.WriteLine("PRESSED");
-    }
-    public void OnReleased(object? sender, MouseButtonEventArgs pointerEventArgs)
-    {
-        OnPortReleased?.Invoke(sender, pointerEventArgs, Id);
-
-        Debug.WriteLine("RELEASED");
+        Id = portId;
     }
 }

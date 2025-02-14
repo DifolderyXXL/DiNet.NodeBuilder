@@ -9,7 +9,13 @@
              xmlns:vm="clr-namespace:DiNet.NodeBuilder.WPF.ViewModels"
              xmlns:v="clr-namespace:DiNet.NodeBuilder.WPF.Views"
              d:DataContext="{d:DesignInstance vm:NodeViewModel}">
+
+    <UserControl.RenderTransform>
+        <TranslateTransform X="{Binding PositionX}" Y="{Binding PositionY}"/>
+    </UserControl.RenderTransform>
+
     <Border>
+        
         <Grid Background="Gray">
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
@@ -25,8 +31,8 @@
 
                 <Label Grid.Column="1" Content="Title" Foreground="WhiteSmoke" FontSize="25" HorizontalContentAlignment="Center"/>
 
-                <v:PortView Grid.Column="0" Width="20" Height="20" HorizontalAlignment="Left"/>
-                <v:PortView Grid.Column="2" Width="20" Height="20" HorizontalAlignment="Right"/>
+                <v:PortView Grid.Column="0" Width="20" Height="20" HorizontalAlignment="Left" />
+                <v:PortView Grid.Column="2" Width="20" Height="20" HorizontalAlignment="Right" />
             </Grid>
 
             <Grid Grid.Row="1">

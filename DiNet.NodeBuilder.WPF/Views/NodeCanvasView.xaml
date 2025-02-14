@@ -10,7 +10,19 @@
              xmlns:v="clr-namespace:DiNet.NodeBuilder.WPF.Views"
              d:DataContext="{d:DesignInstance vm:NodeCanvasViewModel}"
              >
-    <Grid >
-
-    </Grid>
+    <UserControl.Template>
+        <ControlTemplate TargetType="UserControl">
+            <Grid Background="Transparent" MouseDown="WorldGrid_MouseDown" PreviewMouseMove="Grid_PreviewMouseMove" MouseUp="Grid_MouseUp" PreviewMouseWheel="Grid_PreviewMouseWheel">
+                <Grid x:Name="WorldGrid">
+                    <Grid.RenderTransform>
+                        <TransformGroup>
+                            <TranslateTransform X="{Binding LocalPositionX, RelativeSource={RelativeSource AncestorType=local:NodeCanvasView}, Mode=OneWay}" Y="{Binding LocalPositionY, RelativeSource={RelativeSource AncestorType=local:NodeCanvasView}, Mode=OneWay}"/>
+                            <ScaleTransform ScaleX="{Binding LocalScale, RelativeSource={RelativeSource AncestorType=local:NodeCanvasView}, Mode=OneWay}" ScaleY="{Binding LocalScale, RelativeSource={RelativeSource AncestorType=local:NodeCanvasView}, Mode=OneWay}"/> 
+                        </TransformGroup>
+                    </Grid.RenderTransform>
+                    <ContentPresenter/>
+                </Grid>
+            </Grid>
+        </ControlTemplate>
+    </UserControl.Template>
 </UserControl>

@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 namespace DiNet.NodeBuilder.WPF.ViewModels;
 public partial class NodeWorldViewModel : ObservableObject
 {
-    [ObservableProperty] public partial NodeCanvasViewModel CanvasViewModel { get; set; }
+    [ObservableProperty] public partial NodeCanvasViewModel? CanvasViewModel { get; set; }
     public ObservableCollection<NodeViewModel> Nodes { get; } = [new(0), new(1)];
 
     public NodeViewModel? DraggingNode { get; private set; }

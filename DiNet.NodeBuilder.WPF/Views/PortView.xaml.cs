@@ -19,18 +19,10 @@ namespace DiNet.NodeBuilder.WPF.Views;
 /// </summary>
 public partial class PortView : UserControl
 {
+
+
     public PortView()
     {
         InitializeComponent();
-    }
-
-    private void Port_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-
-    }
-
-    private void Port_MouseUp(object sender, MouseButtonEventArgs e)
-    {
-
     }
 }

@@ -8,8 +8,8 @@ public partial class NodeViewModel : ObservableObject
 {
     public int Id { get; }
 
-    [ObservableProperty] public partial float PositionX { get; set; }
-    [ObservableProperty] public partial float PositionY { get; set; }
+    [ObservableProperty] public partial double PositionX { get; set; }
+    [ObservableProperty] public partial double PositionY { get; set; }
 
     public ObservableCollection<PortViewModel> InputPorts { get; } = [];
     public ObservableCollection<PortViewModel> OutputPorts { get; } = [];

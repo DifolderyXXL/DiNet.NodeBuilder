@@ -9,7 +9,6 @@
              xmlns:vm="clr-namespace:DiNet.NodeBuilder.WPF.ViewModels"
              d:DataContext="{d:DesignInstance vm:PortViewModel}"
              >
-    <Ellipse x:Name="Port" Stroke="DarkOliveGreen" Fill="OliveDrab" StrokeThickness="3"
-             MouseDown="Port_MouseDown" MouseUp="Port_MouseUp">
+    <Ellipse x:Name="Port" Stroke="DarkOliveGreen" Fill="OliveDrab" StrokeThickness="3">
     </Ellipse>
 </UserControl>
