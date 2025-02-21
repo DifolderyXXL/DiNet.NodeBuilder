@@ -15,11 +15,11 @@ using System.Windows.Shapes;
 
 namespace DiNet.NodeBuilder.WPF.Views;
 /// <summary>
-/// Логика взаимодействия для NodeView.xaml
+/// Логика взаимодействия для CanvasView.xaml
 /// </summary>
-public partial class NodeView : UserControl
+public partial class CanvasView : UserControl
 {
-    public NodeView()
+    public CanvasView()
     {
         InitializeComponent();
     }

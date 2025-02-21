@@ -1,13 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.ObjectModel;
+using DiNet.NodeBuilder.Core.Nodes.Interfaces;
+using System.Configuration;
 
 namespace DiNet.NodeBuilder.WPF.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject
 {
-    public ObservableCollection<NodeViewModel> Nodes { get; }
-    public MainWindowViewModel()
-    {
-        Nodes = [new(0), new(1)];
-    }
+    public NodeViewModel Node { get; } = new(0, "NODE");
+    public CanvasViewModel CanvasView { get; } = new();
 }

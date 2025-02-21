@@ -1,24 +1,21 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
-using System.Windows.Input;
+﻿using System.Collections.ObjectModel;
 
 namespace DiNet.NodeBuilder.WPF.ViewModels;
-public partial class NodeViewModel : ObservableObject
+
+public partial class NodeViewModel : TransformViewModel
 {
     public int Id { get; }
+    public string? Title { get; }
 
-    [ObservableProperty] public partial double PositionX { get; set; }
-    [ObservableProperty] public partial double PositionY { get; set; }
+    public PortViewModel? PreviousPort { get; }
+    public PortViewModel? NextPort { get; }
 
-    public ObservableCollection<PortViewModel> InputPorts { get; } = [];
-    public ObservableCollection<PortViewModel> OutputPorts { get; } = [];
+    public ObservableCollection<PortViewModel> Input { get; } = [];
+    public ObservableCollection<PortViewModel> Output { get; } = [];
 
-    public NodeViewModel(int associatedId)
+    public NodeViewModel(int id, string? title)
     {
-        Id = associatedId;
-
-        PositionX = Random.Shared.NextSingle() * 600;
-        PositionY = Random.Shared.NextSingle() * 600;
+        Id = id;
+        Title = title;
     }
 }

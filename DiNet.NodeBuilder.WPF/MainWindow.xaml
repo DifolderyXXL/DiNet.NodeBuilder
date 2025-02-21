@@ -7,11 +7,14 @@
         mc:Ignorable="d"
         xmlns:vm="clr-namespace:DiNet.NodeBuilder.WPF.ViewModels"
         xmlns:v="clr-namespace:DiNet.NodeBuilder.WPF.Views"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800"
+        >
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
     <Grid>
-        <v:NodeWorldView/>
+        <v:CanvasView DataContext="{Binding CanvasView}">
+            <v:NodeView Width="150" Height="100" DataContext="{Binding Node}"/>
+        </v:CanvasView>
     </Grid>
 </Window>
