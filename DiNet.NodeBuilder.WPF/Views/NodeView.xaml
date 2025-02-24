@@ -24,8 +24,10 @@
 
             <Label Content="{Binding Title}" Foreground="{StaticResource NodeTitleForegroundColor}" HorizontalContentAlignment="Center" VerticalAlignment="Center" Grid.Column="1"/>
 
+            <!--
             <v:PortView Grid.Column="0" DataContext="{Binding PreviousPort}"/>
             <v:PortView Grid.Column="2" DataContext="{Binding NextPort}"/>
+            -->
         </Grid> 
     </Grid>
 </UserControl>

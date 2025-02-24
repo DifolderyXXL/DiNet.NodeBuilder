@@ -3,4 +3,6 @@
     <SolidColorBrush x:Key="NodeTitleColor" Color="#4a4a4a"/>
     <SolidColorBrush x:Key="NodeBodyColor" Color="#a3a3a3"/>
     <SolidColorBrush x:Key="NodeTitleForegroundColor" Color="White"/>
+
+    
 </ResourceDictionary>

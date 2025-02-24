@@ -19,8 +19,37 @@ namespace DiNet.NodeBuilder.WPF.Views;
 /// </summary>
 public partial class CanvasView : UserControl
 {
+    public object InnerContent
+    {
+        get { return GetValue(InnerContentProperty); }
+        set { SetValue(InnerContentProperty, value); }
+    }
+
+    public static readonly DependencyProperty InnerContentProperty =
+        DependencyProperty.Register("InnerContent", typeof(object), typeof(CanvasView), new PropertyMetadata(null));
+
     public CanvasView()
     {
         InitializeComponent();
+    }
+
+    private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+
+    }
+
+    private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+
+    }
+
+    private void Canvas_MouseMove(object sender, MouseEventArgs e)
+    {
+
+    }
+
+    private void Canvas_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+
     }
 }

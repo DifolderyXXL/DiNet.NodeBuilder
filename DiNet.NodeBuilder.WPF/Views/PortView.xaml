@@ -11,7 +11,6 @@
              xmlns:b="clr-namespace:DiNet.NodeBuilder.WPF.Behaviors"
              d:DataContext="{d:DesignInstance vm:PortViewModel}"
              >
-
     <Grid>
         <Ellipse Stroke="{StaticResource PortBorderColor}" Fill="{StaticResource PortBodyColor}" StrokeThickness="3"/>
         <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -20,5 +19,4 @@
                 Hotspot="{Binding PreviousPort.Offset}" />
         </Grid>
     </Grid>
-
 </UserControl>

@@ -8,13 +8,33 @@
         xmlns:vm="clr-namespace:DiNet.NodeBuilder.WPF.ViewModels"
         xmlns:v="clr-namespace:DiNet.NodeBuilder.WPF.Views"
         Title="MainWindow" Height="450" Width="800"
+        d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
         >
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
-    <Grid>
-        <v:CanvasView DataContext="{Binding CanvasView}">
-            <v:NodeView Width="150" Height="100" DataContext="{Binding Node}"/>
-        </v:CanvasView>
-    </Grid>
+    <v:CanvasView DataContext="{Binding Canvas}">
+        <v:CanvasView.InnerContent>
+            <ItemsControl ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=local:MainWindow}, Path=DataContext.Nodes}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemContainerStyle>
+                    <Style>
+                        <Setter Property="Canvas.Left" Value="{Binding Offset.X}"/>
+                        <Setter Property="Canvas.Top" Value="{Binding Offset.Y}"/>
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <v:NodeView DataContext="{Binding}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </v:CanvasView.InnerContent>
+    </v:CanvasView>
 </Window>
