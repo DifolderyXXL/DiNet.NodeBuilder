@@ -1,12 +1,13 @@
-﻿using System.Diagnostics;
-using System.Net.NetworkInformation;
-using System.Reflection.Metadata;
+﻿using DiNet.NodeBuilder.WPF.Views.Controls;
+using DiNet.NodeBuilder.WPF.Views.Controls.Interfaces;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace DiNet.NodeBuilder.WPF.Behaviors;
-public class ContentTransformBehavior : Grid
+public class ContentTransformBehavior : Grid, IMoveElement, IScaleElement
 {
     public Point Position
     {
@@ -38,19 +39,26 @@ public class ContentTransformBehavior : Grid
         set { SetValue(MinScaleProperty, value); }
     }
     public static readonly DependencyProperty MinScaleProperty =
-        DependencyProperty.Register(nameof(MinScale), typeof(double), typeof(ContentTransformBehavior), new PropertyMetadata(0.5d));
+        DependencyProperty.Register(nameof(MinScale), typeof(double), typeof(ContentTransformBehavior), new PropertyMetadata(0.15d));
 
     public double MaxScale
     {
         get { return (double)GetValue(MaxScaleProperty); }
         set { SetValue(MaxScaleProperty, value); }
     }
+
     public static readonly DependencyProperty MaxScaleProperty =
         DependencyProperty.Register(nameof(MaxScale), typeof(double), typeof(ContentTransformBehavior), new PropertyMetadata(2d));
 
-    public ContentTransformBehavior() : base()
+
+    private MatrixTransform? matrixTransform;
+
+    public ElementController Controller { get; }
+
+    public ContentTransformBehavior()
     {
-        
+        Controller = new();
+        Controller.BeginScaling(this);
 
         this.MouseUp += OnMouseUp;
         this.MouseDown += OnMouseDown;
@@ -58,56 +66,57 @@ public class ContentTransformBehavior : Grid
         this.MouseWheel += OnMouseWheel;
     }
 
-    private void ScaleWorld(Point relativePoint, int dir)
+    protected override void OnInitialized(EventArgs e)
     {
-        var scaleAdd = DeltaScale * dir;
-        if (Scale + scaleAdd > MaxScale || Scale + scaleAdd < MinScale)
-            return;
+        base.OnInitialized(e);
 
-        Position = new Point(
-            Position.X - (relativePoint.X / Scale - relativePoint.X / (Scale + scaleAdd)), 
-            Position.Y - (relativePoint.Y / Scale - relativePoint.Y / (Scale + scaleAdd)));
-
-        Scale += scaleAdd;
+        matrixTransform = new MatrixTransform();
+        this.Children[0].RenderTransform = matrixTransform;
     }
 
-    private bool _isDragging;
-    private Point _startMousePoint;
-    private Point _startBodyPoint;
+    public void MoveElement(Vector offset)
+    {
+        if (matrixTransform is null) return;
+
+        var matrix = matrixTransform.Matrix;
+        offset.Negate();
+        matrix.Translate(offset.X, offset.Y);
+        matrixTransform.Matrix = matrix;
+        Position = new(matrix.OffsetX, matrix.OffsetY);
+    }
+
+    public void ScaleElement(Point position, double delta)
+    {
+        if (matrixTransform is null) return;
+
+        var matrix = matrixTransform.Matrix;
+
+        matrix.ScaleAtPrepend(delta, delta, position.X, position.Y);
+        matrixTransform.Matrix = matrix;
+        Scale = matrix.M11;
+    }
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
     {
-        ScaleWorld(e.MouseDevice.GetPosition(this), e.Delta / 120);
-    }
-
-    private bool UpdateDrag(MouseEventArgs args)
-    {
-        if (!_isDragging) return false;
-        return _isDragging = args.MiddleButton == MouseButtonState.Pressed;
+        Controller.InvokeScale(e.MouseDevice.GetPosition(this.Children[0]), e.Delta > 0 ? 1.1 : 0.9);
     }
 
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
-        Debug.WriteLine(UpdateDrag(e));
-        if (!UpdateDrag(e)) // middle mouse check is not working
-                return;
+        if (e.MiddleButton == MouseButtonState.Released)
+            Controller.EndMovement();
 
-        var curPoint = e.GetPosition(this);
-
-        var delta = new Point((curPoint.X - _startMousePoint.X) / Scale, (curPoint.Y - _startMousePoint.Y / Scale));
-        Position = new(_startBodyPoint.X + delta.X, _startBodyPoint.Y + delta.Y);
-        
+        if (Controller.ContainsMoveElement())
+        {
+            Controller.InvokeMovement(e.GetPosition(this));
+        }
     }
 
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton == MouseButton.Middle)
         {
-            if (UpdateDrag(e))
-            {
-                _startMousePoint = e.GetPosition(this);
-                _startBodyPoint = Position;
-            }
+            Controller.BeginMovement(e.GetPosition(this), this);
         }
     }
 
@@ -115,7 +124,7 @@ public class ContentTransformBehavior : Grid
     {
         if (e.ChangedButton == MouseButton.Middle)
         {
-            _isDragging = e.MiddleButton == MouseButtonState.Pressed;
+            Controller.EndMovement();
         }
     }
 }

@@ -12,14 +12,10 @@
              d:DataContext="{d:DesignInstance vm:CanvasViewModel}"
              >
 
-    
-    <b:ContentTransformBehavior Background="Red" Position="{Binding Offset}" Scale="{Binding Scale}">
-        <Grid Canvas.Left="{Binding Offset.X}" Canvas.Top="{Binding Offset.Y}">
-            <Grid.RenderTransform>
-                <ScaleTransform ScaleX="{Binding Scale, Mode=OneWay}" ScaleY="{Binding Scale, Mode=OneWay}"/>
-            </Grid.RenderTransform>
-            <ContentControl Content="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=InnerContent}"/>
-        </Grid>
+    <b:ContentTransformBehavior Background="Transparent" Position="{Binding Offset, Mode=OneWayToSource}" Scale="{Binding Scale, Mode=OneWayToSource}">
+
+         <ContentControl Content="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=InnerContent}"/>
+
     </b:ContentTransformBehavior>
-    
+   
 </UserControl>
