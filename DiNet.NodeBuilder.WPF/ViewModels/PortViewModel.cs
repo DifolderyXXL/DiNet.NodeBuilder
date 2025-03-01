@@ -1,10 +1,14 @@
-﻿namespace DiNet.NodeBuilder.WPF.ViewModels;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-public partial class PortViewModel : TransformViewModel
+namespace DiNet.NodeBuilder.WPF.ViewModels;
+
+public partial class PortViewModel : ObservableObject
 {
     public int Id { get; }
     public PortViewModel(int id)
     {
         Id = id;
     }
+
+
 }

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="DiNet.NodeBuilder.WPF.Views.NodeView"
+﻿<Grid x:Class="DiNet.NodeBuilder.WPF.Views.NodeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -10,12 +10,19 @@
              xmlns:v="clr-namespace:DiNet.NodeBuilder.WPF.Views"
              d:DataContext="{d:DesignInstance vm:NodeViewModel}"
              >
+    <Grid.RenderTransform>
+        <MatrixTransform x:Name="matrixTransform"/>
+    </Grid.RenderTransform>
     <Grid Background="{StaticResource NodeBodyColor}">
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0" Background="{StaticResource NodeTitleColor}">
+        <Grid x:Name="Header" Grid.Row="0" Background="{StaticResource NodeTitleColor}"
+
+              MouseLeftButtonUp="Header_MouseLeftButtonUp"
+              MouseLeftButtonDown="Header_MouseLeftButtonDown"
+              >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="50"/>
                 <ColumnDefinition Width="*"/>
@@ -24,10 +31,12 @@
 
             <Label Content="{Binding Title}" Foreground="{StaticResource NodeTitleForegroundColor}" HorizontalContentAlignment="Center" VerticalAlignment="Center" Grid.Column="1"/>
 
-            <!--
-            <v:PortView Grid.Column="0" DataContext="{Binding PreviousPort}"/>
-            <v:PortView Grid.Column="2" DataContext="{Binding NextPort}"/>
-            -->
+            
+            <v:PortView x:Name="PreviousPort" Grid.Column="0" DataContext="{Binding PreviousPort}"
+                        MouseLeftButtonUp="PortView_MouseLeftButtonUp"/>
+            <v:PortView x:Name="NextPort" Grid.Column="2" DataContext="{Binding NextPort}"
+                        MouseLeftButtonDown="PortView_MouseLeftButtonDown"/>
+            
         </Grid> 
     </Grid>
-</UserControl>
+</Grid>

@@ -23,7 +23,7 @@ public class NextGenCompilation
             .Where(x => !_visited.Contains(x.Id))
             .Where(x => x.InputPorts is null || x.InputPorts.Length == 0);
 
-         var modifierExpressions = nodes.Select(x=>Expression.Block(GetModifierBody(x).Reverse()));
+        var modifierExpressions = nodes.Select(x=>Expression.Block(GetModifierBody(x).Reverse()));
 
         var resBody = modifierExpressions.Concat(
             [

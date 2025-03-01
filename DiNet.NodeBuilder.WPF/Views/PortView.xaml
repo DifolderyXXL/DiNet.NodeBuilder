@@ -8,15 +8,9 @@
              d:DesignHeight="50" d:DesignWidth="50"
              xmlns:vm="clr-namespace:DiNet.NodeBuilder.WPF.ViewModels"
              xmlns:v="clr-namespace:DiNet.NodeBuilder.WPF.Views"
-             xmlns:b="clr-namespace:DiNet.NodeBuilder.WPF.Behaviors"
+             xmlns:vp="clr-namespace:DiNet.NodeBuilder.WPF.Views.Panels"
              d:DataContext="{d:DesignInstance vm:PortViewModel}"
              >
-    <Grid>
-        <Ellipse Stroke="{StaticResource PortBorderColor}" Fill="{StaticResource PortBodyColor}" StrokeThickness="3"/>
-        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-            <b:CanvasElementPositionBehavior
-                Ancestor="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type v:CanvasView}}}" 
-                Hotspot="{Binding PreviousPort.Offset}" />
-        </Grid>
-    </Grid>
+
+    <Ellipse Stroke="{StaticResource PortBorderColor}" Fill="{StaticResource PortBodyColor}" StrokeThickness="3" Panel.ZIndex="3"/>
 </UserControl>

@@ -7,8 +7,8 @@ public partial class NodeViewModel : TransformViewModel
     public int Id { get; }
     public string? Title { get; }
 
-    public PortViewModel? PreviousPort { get; }
-    public PortViewModel? NextPort { get; }
+    public PortViewModel PreviousPort { get; set; }
+    public PortViewModel NextPort { get; set; }
 
     public ObservableCollection<PortViewModel> Input { get; } = [];
     public ObservableCollection<PortViewModel> Output { get; } = [];

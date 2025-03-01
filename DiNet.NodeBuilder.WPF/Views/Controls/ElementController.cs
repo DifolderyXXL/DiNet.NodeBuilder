@@ -1,6 +1,7 @@
 ﻿using DiNet.NodeBuilder.WPF.Logging;
 using DiNet.NodeBuilder.WPF.Views.Controls.Interfaces;
 using System.Windows;
+using System.Windows.Shapes;
 
 namespace DiNet.NodeBuilder.WPF.Views.Controls;
 public class ElementController(ILogger? c_logger = null)
@@ -15,11 +16,38 @@ public class ElementController(ILogger? c_logger = null)
 
     private ILogger? _logger = c_logger;
 
+    private Line? _line;
+
+    public bool ContainsSpecificMoveElement(IMoveElement element)
+        => _moveElement is not null && _moveElement == element;
+
     public bool ContainsMoveElement()
         => _moveElement is not null;
 
     public bool ContainsScaleElement()
         => _scaleElement is not null;
+
+    public Line? CurrentLine => _line;
+    public bool ContainsLineElement()
+        => _line is not null;
+
+    public void BeginLineMove(Line line)
+    {
+        _line = line;
+    }
+    public void UpdateLine(Point position)
+    {
+        if (_line is null)
+            return;
+
+        _line.X2 = position.X;
+        _line.Y2 = position.Y;
+    }
+    public void EndLineMove()
+    {
+        _line = null;
+    }
+
 
     public void BeginMovement(Point position, IMoveElement element)
     {
