@@ -1,6 +1,7 @@
 ﻿using DiNet.NodeBuilder.WPF.Logging;
 using DiNet.NodeBuilder.WPF.Views.Controls.Interfaces;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Shapes;
 
 namespace DiNet.NodeBuilder.WPF.Views.Controls;
@@ -13,6 +14,7 @@ public class ElementController(ILogger? c_logger = null)
 
     private bool _isMovement = false;
     private bool _isScaling = false;
+    private bool _useFirstLineCoordinate = false;
 
     private ILogger? _logger = c_logger;
 
@@ -31,17 +33,29 @@ public class ElementController(ILogger? c_logger = null)
     public bool ContainsLineElement()
         => _line is not null;
 
-    public void BeginLineMove(Line line)
+    public bool LineMovedFirstCoordinates
+        => _useFirstLineCoordinate;
+
+    public void BeginLineMove(Line line,  bool useFirstLineCoordinate = false)
     {
         _line = line;
+        _useFirstLineCoordinate = useFirstLineCoordinate;
     }
     public void UpdateLine(Point position)
     {
         if (_line is null)
             return;
+        if(_useFirstLineCoordinate)
+        {
+            _line.X1 = position.X;
+            _line.Y1 = position.Y;
+        }
+        else
+        {
+            _line.X2 = position.X;
+            _line.Y2 = position.Y;
+        }
 
-        _line.X2 = position.X;
-        _line.Y2 = position.Y;
     }
     public void EndLineMove()
     {

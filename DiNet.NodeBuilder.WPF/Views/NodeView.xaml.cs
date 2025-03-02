@@ -1,5 +1,10 @@
-﻿using DiNet.NodeBuilder.WPF.ViewModels;
+﻿using DiNet.NodeBuilder.Common.Helpers;
+using DiNet.NodeBuilder.Core;
+using DiNet.NodeBuilder.WPF.ViewModels;
+using DiNet.NodeBuilder.WPF.Views.Controls;
 using DiNet.NodeBuilder.WPF.Views.Controls.Interfaces;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -8,6 +13,9 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace DiNet.NodeBuilder.WPF.Views;
+
+public record NodeBranch(Line line, PortView port, NodeView portParent, bool isFirstCoord);
+
 /// <summary>
 /// Логика взаимодействия для NodeView.xaml
 /// </summary>
@@ -15,9 +23,6 @@ public partial class NodeView : Grid, IMoveElement
 {
     private NodeAreaView _nodeArea;
 
-    private Line _lineFirst;
-    private Line _lineSecond;
-    //TODO: Bind Position
 
     public NodeView(NodeAreaView nodeArea)
     {
@@ -41,18 +46,18 @@ public partial class NodeView : Grid, IMoveElement
         var matrix = matrixTransform.Matrix;
         offset.Negate();
 
+        var branches = _nodeArea.GetBranches();
+        foreach (var item in branches.Where(x=>x.isFirstCoord && x.portParent == this))
+        {
+            item.line.X1 += offset.X;
+            item.line.Y1 += offset.Y;
+        }
+        foreach (var item in branches.Where(x => !x.isFirstCoord && x.portParent == this))
+        {
+            item.line.X2 += offset.X;
+            item.line.Y2 += offset.Y;
+        }
 
-        if (_lineFirst is not null)
-        {
-            _lineFirst.X1 += offset.X;
-            _lineFirst.Y1 += offset.Y;
-        }
-        if (_lineSecond is not null)
-        {
-            _lineSecond.X2 += offset.X;
-            _lineSecond.Y2 += offset.Y;
-        }
-        
         matrix.Translate(offset.X, offset.Y);
         matrixTransform.Matrix = matrix;
     }
@@ -67,47 +72,85 @@ public partial class NodeView : Grid, IMoveElement
     {
         e.Handled = true;
 
-        var line = new Line() { StrokeThickness = 3, Stroke = new SolidColorBrush(Colors.Red) , IsHitTestVisible = false};
-        _nodeArea.BranchContent.Children.Add(line);
-        _lineFirst = line;
+        var portView = (sender as PortView)!;
 
         var pos = Mouse.GetPosition(_nodeArea.Content);
 
-        var centerRelativeToAncestor = GetCenterPosition(NextPort, _nodeArea.Content);
+        var branches = _nodeArea.Branches.Values;
+        if (branches.TryFind(x=>x.port == portView, out var outBranch))
+        {
+            _nodeArea.Controller.BeginLineMove(outBranch.line, outBranch.isFirstCoord);
+            _nodeArea.Branches.Remove(outBranch.port);
+        }
+        else
+        {
+            var line = new Line() { StrokeThickness = 3, Stroke = new SolidColorBrush(Colors.Red), IsHitTestVisible = false };
+            _nodeArea.BranchContent.Children.Add(line);
 
-        line.X1 = centerRelativeToAncestor.X;
-        line.Y1 = centerRelativeToAncestor.Y;
+            _nodeArea.Branches.Add(portView, new(line, portView, this, true));
 
-        line.X2 = pos.X;
-        line.Y2 = pos.Y;
+            var centerRelativeToAncestor = GetCenterPosition(portView, _nodeArea.Content);
 
-        _nodeArea.Controller.BeginLineMove(line);
+            line.X1 = centerRelativeToAncestor.X;
+            line.Y1 = centerRelativeToAncestor.Y;
+
+            line.X2 = pos.X;
+            line.Y2 = pos.Y;
+
+            _nodeArea.Controller.BeginLineMove(line);
+        }
+
+        
     }
 
     private void PortView_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
+        var portView = (sender as PortView)!;
+
         if (_nodeArea.Controller.ContainsLineElement())
         {
-            _lineSecond = _nodeArea.Controller.CurrentLine!;
+            var currentLine = _nodeArea.Controller.CurrentLine!;
 
-            var centerRelativeToAncestor = GetCenterPosition(PreviousPort, _nodeArea.Content);
+            var branches = _nodeArea.Branches.Values;
+            if (branches.TryFind(x => x.port == portView, out var outBranch))
+            {
+                if (outBranch.line == currentLine)
+                {
+                    _nodeArea.Branches.Remove(outBranch.port);
+                    _nodeArea.BranchContent.Children.Remove(outBranch.line);
+                }
+                else
+                {
+                    if (branches.TryFind(x => x.line == currentLine, out var branch))
+                        _nodeArea.Branches.Remove(branch.port);
+                    _nodeArea.BranchContent.Children.Remove(currentLine);
+                }
+            }
+            else
+            {
+                bool isFirst = false;
+                if(_nodeArea.Branches.Values.TryFind(x => x.line == currentLine, out var branch))
+                    isFirst = !branch.isFirstCoord;
+                
+                _nodeArea.Branches.Add(portView, new(currentLine, portView, this, isFirst));
 
-            _lineSecond.X2 = centerRelativeToAncestor.X;
-            _lineSecond.Y2 = centerRelativeToAncestor.Y;
+                var centerRelativeToAncestor = GetCenterPosition((sender as PortView)!, _nodeArea.Content);
+
+                if(!isFirst)
+                {
+                    currentLine.X2 = centerRelativeToAncestor.X;
+                    currentLine.Y2 = centerRelativeToAncestor.Y;
+
+                }
+                else
+                {
+                    currentLine.X1 = centerRelativeToAncestor.X;
+                    currentLine.Y1 = centerRelativeToAncestor.Y;
+                }
+            }
 
             _nodeArea.Controller.EndLineMove();
         }
-    }
-
-    protected static void CreateBinding(DependencyObject target, object src, DependencyProperty property, string path, BindingMode mode = BindingMode.TwoWay)
-    {
-        var bind = new Binding(path)
-        {
-            Source = src,
-            Mode = mode,
-            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-        };
-        BindingOperations.SetBinding(target, property, bind);
     }
 
     private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

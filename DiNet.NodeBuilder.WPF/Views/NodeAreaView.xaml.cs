@@ -1,4 +1,5 @@
-﻿using DiNet.NodeBuilder.WPF.ViewModels;
+﻿using DiNet.NodeBuilder.Common.Helpers;
+using DiNet.NodeBuilder.WPF.ViewModels;
 using DiNet.NodeBuilder.WPF.Views.Controls;
 using DiNet.NodeBuilder.WPF.Views.Controls.Interfaces;
 using System.Collections;
@@ -66,7 +67,6 @@ namespace DiNet.NodeBuilder.WPF.Views
         private List<NodeView> _nodes = [];
 
         public ElementController Controller { get; }
-
         public NodeAreaView()
         {
             InitializeComponent();
@@ -75,7 +75,10 @@ namespace DiNet.NodeBuilder.WPF.Views
             Controller.BeginScaling(this);
         }
 
-        
+        public IEnumerable<NodeBranch> GetBranches()
+            => Branches.Values.Distinct();
+        public Dictionary<PortView, NodeBranch> Branches = [];
+
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
@@ -170,6 +173,19 @@ namespace DiNet.NodeBuilder.WPF.Views
             Scale = matrix.M11;
         }
 
+        private void RemoveCurrentLine()
+        {
+            if (Controller.ContainsLineElement())
+            {
+                while (Branches.Values.TryFind(x => x.line == Controller.CurrentLine, out var branch))
+                    Branches.Remove(branch.port);
+
+
+                BranchContent.Children.Remove(Controller.CurrentLine);
+                Controller.EndLineMove();
+            }
+        }
+
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
             Controller.InvokeScale(e.MouseDevice.GetPosition(Content), e.Delta > 0 ? 1.1 : 0.9);
@@ -180,10 +196,15 @@ namespace DiNet.NodeBuilder.WPF.Views
             if (Controller.ContainsLineElement())
                 Controller.UpdateLine(e.GetPosition(Content));
 
-            if (e.LeftButton == MouseButtonState.Released
-                && Controller.ContainsMoveElement()
-                && !Controller.ContainsSpecificMoveElement(this))
-                Controller.EndMovement();
+            if (e.LeftButton == MouseButtonState.Released)
+            {
+                if (Controller.ContainsLineElement())
+                    RemoveCurrentLine();
+
+                if (Controller.ContainsMoveElement()
+                    && !Controller.ContainsSpecificMoveElement(this))
+                    Controller.EndMovement();
+            }
 
             if (e.MiddleButton == MouseButtonState.Released
                 && Controller.ContainsSpecificMoveElement(this))
@@ -209,6 +230,9 @@ namespace DiNet.NodeBuilder.WPF.Views
 
         private void OnMouseUp(object sender, MouseButtonEventArgs e)
         {
+            if (Controller.ContainsLineElement())
+                RemoveCurrentLine();
+
             if (e.ChangedButton == MouseButton.Left
                 && !Controller.ContainsSpecificMoveElement(this))
                 Controller.EndMovement();

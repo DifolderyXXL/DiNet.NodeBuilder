@@ -9,7 +9,6 @@
              xmlns:vm="clr-namespace:DiNet.NodeBuilder.WPF.ViewModels"
              xmlns:v="clr-namespace:DiNet.NodeBuilder.WPF.Views"
              xmlns:vp="clr-namespace:DiNet.NodeBuilder.WPF.Views.Panels"
-             d:DataContext="{d:DesignInstance vm:PortViewModel}"
              >
 
     <Ellipse Stroke="{StaticResource PortBorderColor}" Fill="{StaticResource PortBodyColor}" StrokeThickness="3" Panel.ZIndex="3"/>
