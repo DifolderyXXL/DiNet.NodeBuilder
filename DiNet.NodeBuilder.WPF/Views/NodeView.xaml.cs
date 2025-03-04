@@ -1,20 +1,14 @@
-﻿using DiNet.NodeBuilder.Common.Helpers;
-using DiNet.NodeBuilder.Core;
+﻿using DiNet.NodeBuilder.WPF.Helpers;
 using DiNet.NodeBuilder.WPF.ViewModels;
 using DiNet.NodeBuilder.WPF.Views.Controls;
 using DiNet.NodeBuilder.WPF.Views.Controls.Interfaces;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace DiNet.NodeBuilder.WPF.Views;
-
-public record NodeBranch(Line line, PortView port, NodeView portParent, bool isFirstCoord);
 
 /// <summary>
 /// Логика взаимодействия для NodeView.xaml
@@ -22,7 +16,7 @@ public record NodeBranch(Line line, PortView port, NodeView portParent, bool isF
 public partial class NodeView : Grid, IMoveElement
 {
     private NodeAreaView _nodeArea;
-
+    private BranchContext _branchContext => _nodeArea.BranchContext;
 
     public NodeView(NodeAreaView nodeArea)
     {
@@ -46,17 +40,12 @@ public partial class NodeView : Grid, IMoveElement
         var matrix = matrixTransform.Matrix;
         offset.Negate();
 
-        var branches = _nodeArea.GetBranches();
-        foreach (var item in branches.Where(x=>x.isFirstCoord && x.portParent == this))
-        {
-            item.line.X1 += offset.X;
-            item.line.Y1 += offset.Y;
-        }
-        foreach (var item in branches.Where(x => !x.isFirstCoord && x.portParent == this))
-        {
-            item.line.X2 += offset.X;
-            item.line.Y2 += offset.Y;
-        }
+        var branches = _branchContext.GetAllBranches(this);
+        foreach (var item in branches.Where(x => x.isFirstCoord))
+            item.line.AddFirst(offset);
+
+        foreach (var item in branches.Where(x => !x.isFirstCoord))
+            item.line.AddSecond(offset);
 
         matrix.Translate(offset.X, offset.Y);
         matrixTransform.Matrix = matrix;
@@ -76,31 +65,24 @@ public partial class NodeView : Grid, IMoveElement
 
         var pos = Mouse.GetPosition(_nodeArea.Content);
 
-        var branches = _nodeArea.Branches.Values;
-        if (branches.TryFind(x=>x.port == portView, out var outBranch))
+        if (_branchContext.TryGetBranch(portView, out var outBranch))
         {
             _nodeArea.Controller.BeginLineMove(outBranch.line, outBranch.isFirstCoord);
-            _nodeArea.Branches.Remove(outBranch.port);
+            _branchContext.Remove(outBranch.port);
         }
         else
         {
             var line = new Line() { StrokeThickness = 3, Stroke = new SolidColorBrush(Colors.Red), IsHitTestVisible = false };
-            _nodeArea.BranchContent.Children.Add(line);
 
-            _nodeArea.Branches.Add(portView, new(line, portView, this, true));
+            _branchContext.Add(new(line, portView, this, true));
 
             var centerRelativeToAncestor = GetCenterPosition(portView, _nodeArea.Content);
 
-            line.X1 = centerRelativeToAncestor.X;
-            line.Y1 = centerRelativeToAncestor.Y;
-
-            line.X2 = pos.X;
-            line.Y2 = pos.Y;
+            line.SetFirst(centerRelativeToAncestor);
+            line.SetSecond(pos);
 
             _nodeArea.Controller.BeginLineMove(line);
         }
-
-        
     }
 
     private void PortView_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -111,42 +93,24 @@ public partial class NodeView : Grid, IMoveElement
         {
             var currentLine = _nodeArea.Controller.CurrentLine!;
 
-            var branches = _nodeArea.Branches.Values;
-            if (branches.TryFind(x => x.port == portView, out var outBranch))
+            if (_branchContext.Contains(portView))
             {
-                if (outBranch.line == currentLine)
-                {
-                    _nodeArea.Branches.Remove(outBranch.port);
-                    _nodeArea.BranchContent.Children.Remove(outBranch.line);
-                }
-                else
-                {
-                    if (branches.TryFind(x => x.line == currentLine, out var branch))
-                        _nodeArea.Branches.Remove(branch.port);
-                    _nodeArea.BranchContent.Children.Remove(currentLine);
-                }
+                _branchContext.RemoveByLine(currentLine);
             }
             else
             {
                 bool isFirst = false;
-                if(_nodeArea.Branches.Values.TryFind(x => x.line == currentLine, out var branch))
+                if (_branchContext.TryGetBranch(currentLine, out var branch))
                     isFirst = !branch.isFirstCoord;
-                
-                _nodeArea.Branches.Add(portView, new(currentLine, portView, this, isFirst));
+
+                _branchContext.Add(new(currentLine, portView, this, isFirst));
 
                 var centerRelativeToAncestor = GetCenterPosition((sender as PortView)!, _nodeArea.Content);
 
-                if(!isFirst)
-                {
-                    currentLine.X2 = centerRelativeToAncestor.X;
-                    currentLine.Y2 = centerRelativeToAncestor.Y;
-
-                }
+                if (!isFirst)
+                    currentLine.SetSecond(centerRelativeToAncestor);
                 else
-                {
-                    currentLine.X1 = centerRelativeToAncestor.X;
-                    currentLine.Y1 = centerRelativeToAncestor.Y;
-                }
+                    currentLine.SetFirst(centerRelativeToAncestor);
             }
 
             _nodeArea.Controller.EndLineMove();

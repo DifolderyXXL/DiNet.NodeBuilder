@@ -67,18 +67,16 @@ namespace DiNet.NodeBuilder.WPF.Views
         private List<NodeView> _nodes = [];
 
         public ElementController Controller { get; }
+        public BranchContext BranchContext { get; }
         public NodeAreaView()
         {
             InitializeComponent();
 
+            BranchContext = new(BranchContent);
+
             Controller = new();
             Controller.BeginScaling(this);
         }
-
-        public IEnumerable<NodeBranch> GetBranches()
-            => Branches.Values.Distinct();
-        public Dictionary<PortView, NodeBranch> Branches = [];
-
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
@@ -177,11 +175,8 @@ namespace DiNet.NodeBuilder.WPF.Views
         {
             if (Controller.ContainsLineElement())
             {
-                while (Branches.Values.TryFind(x => x.line == Controller.CurrentLine, out var branch))
-                    Branches.Remove(branch.port);
+                BranchContext.RemoveByLine(Controller.CurrentLine!);
 
-
-                BranchContent.Children.Remove(Controller.CurrentLine);
                 Controller.EndLineMove();
             }
         }
